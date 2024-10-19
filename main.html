@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiVerse</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="large-header" class="large-header">
+        <canvas id="demo-canvas"></canvas>
+        
+        <a href="./page/index.html">
+            <img src="circle.png" class="circle circle1">
+        </a>
+        
+        <a href="./page/water.html">
+            <img src="circle.png" class="circle circle3">
+        </a>
+        
+        <a href="./page/example4.html">
+            <img src="circle.png" class="circle circle4">
+        </a>
+        
+        <img src="circle.png" class="circle circle5" id="circle5">
+    </div>
+
+    <!-- 모달 창 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Logistic Map</h2>
+            <p>Logistic Map은 복잡계 이론의 한 가지로, 인구 성장이나 생태계 모델링 등 다양한 자연 현상을 설명하는 데 사용됩니다. 이는 아주 단순한 비선형 수식임에도 불구하고 매우 복잡한 패턴과 혼돈을 보여줍니다. Logistic Map은 작은 변화에도 큰 차이를 만들 수 있다는 카오스 이론의 중요한 예시 중 하나입니다.</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.0/TweenLite.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.0/easing/EasePack.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로지스틱 맵 물방울 애니메이션</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #eef2f3, #8e9eab);
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            height: 100vh;
+            width: 100vw;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .left-panel,
+        .right-panel {
+            width: 45%;
+            height: 100%;
+        }
+
+        .left-panel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .right-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-width: 100%;
+            border-radius: 12px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls label,
+        .controls input {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .controls button,
+        .main-button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #0077be;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .controls button:hover,
+        .main-button:hover {
+            background-color: #005f9e;
+        }
+
+        #graph {
+            border: 2px solid #ccc;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            margin-top: -20px;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #0077be;
+            font-weight: 400;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        p {
+            font-size: 16px;
+            text-align: center;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .main-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .main-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="left-panel">
+            <canvas id="canvas"></canvas>
+            <div class="controls">
+                <label for="Xn">초기값 Xn (0 ~ 1): </label>
+                <input type="number" id="Xn" value="0.1" step="0.01" min="0" max="1">
+                <label for="speed">수압 (1 ~ 10): </label>
+                <input type="number" id="speed" value="4" step="1" min="1" max="10">
+                <div class="button-group">
+                    <button onclick="setParameters()">설정</button>
+                    <button class="main-button" onclick="location.href='../main.html'">메인</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <h1>로지스틱 맵 애니메이션 및 그래프</h1>
+            <p>물방울의 생성 및 흐름을 로지스틱 맵 방정식에 따라 시각화하며, Xn 값의 변화와 그래프를 통해
+                수압의 변화가 로지스틱 맵에 미치는 영향을 확인할 수 있습니다.</p>
+            <canvas id="graph" width="400" height="350"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth * 0.45;
+        canvas.height = window.innerHeight * 0.9;
+
+        const graphCanvas = document.getElementById('graph');
+        const graphCtx = graphCanvas.getContext('2d');
+
+        const drops = [];
+
+        let r = 3.5;
+        let Xn = 0.1;
+        let speedY = 4;
+        const maxDrops = 100;
+        let intervalId = null;
+        const graphData = [];
+
+        class Drop {
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = 90;
+                this.radius = 5;
+                this.speedY = speedY;
+                this.color = 'rgba(0, 119, 190, 0.7)';
+            }
+
+            update() {
+                this.y += this.speedY;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.closePath();
+            }
+        }
+
+        function drawFaucet() {
+            const faucetX = canvas.width / 2 - 30;
+            const faucetY = 50;
+
+            ctx.fillStyle = '#888';
+            ctx.fillRect(faucetX, faucetY, 60, 20);
+            ctx.fillRect(faucetX + 20, faucetY - 40, 20, 40);
+
+            ctx.beginPath();
+            ctx.arc(faucetX + 30, faucetY + 20, 15, Math.PI, 0, true);
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function logisticMap() {
+            Xn = r * Xn * (1 - Xn);
+            let dropCount = Math.floor(Xn * maxDrops);
+
+            for (let i = 0; i < dropCount; i++) {
+                drops.push(new Drop());
+            }
+
+            graphData.push(Xn);
+            if (graphData.length > 100) graphData.shift();
+        }
+
+        function drawLogisticGraph() {
+            graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+
+            graphCtx.beginPath();
+            graphCtx.moveTo(50, 300); // y축 크기를 조정
+            graphCtx.lineTo(350, 300);
+            graphCtx.lineTo(350, 50);
+            graphCtx.strokeStyle = '#000';
+            graphCtx.stroke();
+
+            // x축과 y축 라벨 추가
+            graphCtx.font = '12px Arial';
+            graphCtx.fillText('r (성장률)', 180, 330); // x축 라벨 위치 조정
+
+            // y축 라벨을 세로로 표시
+            graphCtx.save(); // 현재 상태 저장
+            graphCtx.translate(20, 250); // 라벨 위치 조정
+            graphCtx.rotate(-Math.PI / 2); // 90도 회전
+            graphCtx.fillText('평형 초당 물방울 수', 0, 0); // y축 라벨 세로로 표시
+            graphCtx.restore(); // 이전 상태 복원
+
+            graphCtx.beginPath();
+            graphCtx.moveTo(50, 300 - graphData[0] * 250); // 그래프 크기에 맞게 조정
+            for (let i = 1; i < graphData.length; i++) {
+                const x = 50 + (i / graphData.length) * 300;
+                const y = 300 - graphData[i] * 250;
+                graphCtx.lineTo(x, y);
+            }
+            graphCtx.strokeStyle = '#0077be';
+            graphCtx.stroke();
+        }
+
+        function setParameters() {
+            const inputXn = document.getElementById('Xn').value;
+            Xn = parseFloat(inputXn);
+            if (Xn < 0 || Xn > 1) {
+                alert("Xn은 0과 1 사이의 값이어야 합니다.");
+                Xn = 0.1;
+            }
+
+            const inputSpeed = document.getElementById('speed').value;
+            speedY = parseFloat(inputSpeed);
+            if (speedY < 1 || speedY > 10) {
+                alert("수압은 1과 10 사이의 값이어야 합니다.");
+                speedY = 4;
+            }
+
+            clearInterval(intervalId);
+            const intervalTime = 1000 / speedY;
+            intervalId = setInterval(() => {
+                logisticMap();
+                drawLogisticGraph();
+            }, intervalTime);
+        }
+
+        function init() {
+            intervalId = setInterval(() => {
+                logisticMap();
+                drawLogisticGraph();
+            }, 1000 / speedY);
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawFaucet();
+
+            for (let i = drops.length - 1; i >= 0; i--) {
+                drops[i].update();
+                drops[i].draw();
+
+                if (drops[i].y > canvas.height) {
+                    drops.splice(i, 1);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        init();
+        animate();
+
+        window.addEventListener('resize', function () {
+            canvas.width = window.innerWidth * 0.45;
+            canvas.height = window.innerHeight * 0.9;
+        });
+    </script>
+</body>
+
+</html>

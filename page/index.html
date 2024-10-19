@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>개체수 평형 시뮬레이션</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1a202c;
+      color: white;
+      padding: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    input[type="range"] {
+      width: 100%;
+    }
+    #chartContainer {
+      margin-top: 20px;
+    }
+    #box {
+      width: 300px;
+      height: 300px;
+      background-color: transparent;
+      border: 2px solid white;
+      position: relative;
+      margin-top: 20px;
+    }
+    .circle {
+      width: 40px;
+      height: 40px;
+      background-image: url('image.png');
+      background-size: cover;
+      border-radius: 50%;
+    }
+    #resetButton {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #2d3748;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>개체수 평형 시뮬레이션</h2>
+  <a src=""></as>
+  <button class="main-button" onclick="location.href='../main.html'">메인</button>
+  <div>
+    <label for="rRange">R value: <span id="rValue">5.00</span></label>
+    <input type="range" id="rRange" min="0" max="5" step="0.01" value="5">
+  </div>
+  <div>
+    <label for="x1Range">x₁ initial value: <span id="x1Value">0.50</span></label>
+    <input type="range" id="x1Range" min="0" max="1" step="0.01" value="0.5">
+  </div>
+  <canvas id="chartCanvas" width="800" height="400"></canvas>
+
+  <div id="box"></div>
+  <button id="resetButton">Start</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.17.1/matter.min.js"></script>
+  <script src="logisticMap.js"></script>
+</body>
+</html>
