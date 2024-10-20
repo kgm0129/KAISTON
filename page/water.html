@@ -172,13 +172,13 @@
         const graphCtx = graphCanvas.getContext('2d');
 
         const drops = [];
-
         let r = 3.5;
         let Xn = 0.1;
         let speedY = 4;
         const maxDrops = 100;
         let intervalId = null;
         const graphData = [];
+        let time = 0;
 
         class Drop {
             constructor() {
@@ -217,43 +217,47 @@
         }
 
         function logisticMap() {
-            Xn = r * Xn * (1 - Xn);
-            let dropCount = Math.floor(Xn * maxDrops);
+            Xn = r * Xn * (1 - Xn); // Xn+1 = r * Xn * (1 - Xn) 적용
+            let dropCount = Math.floor(Xn * maxDrops); // Xn에 비례하여 물방울 수 계산
 
             for (let i = 0; i < dropCount; i++) {
-                drops.push(new Drop());
+                drops.push(new Drop()); // 물방울 생성
             }
 
-            graphData.push(Xn);
-            if (graphData.length > 100) graphData.shift();
+            // 시간에 따른 Xn 값 기록 (그래프 그리기 위한 데이터)
+            graphData.push({ time, Xn });
+            if (graphData.length > 100) graphData.shift(); // 데이터가 너무 많아지면 오래된 데이터 제거
+            time++;
         }
 
         function drawLogisticGraph() {
             graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
 
+            // x축과 y축 그리기
             graphCtx.beginPath();
-            graphCtx.moveTo(50, 300); // y축 크기를 조정
-            graphCtx.lineTo(350, 300);
-            graphCtx.lineTo(350, 50);
+            graphCtx.moveTo(50, 300); // x축 시작점
+            graphCtx.lineTo(350, 300); // x축 끝점
+            graphCtx.lineTo(350, 50);  // y축 끝점
             graphCtx.strokeStyle = '#000';
             graphCtx.stroke();
 
-            // x축과 y축 라벨 추가
+            // x축 라벨 (시간)
             graphCtx.font = '12px Arial';
-            graphCtx.fillText('r (성장률)', 180, 330); // x축 라벨 위치 조정
+            graphCtx.fillText('시간 (초)', 180, 330);
 
-            // y축 라벨을 세로로 표시
-            graphCtx.save(); // 현재 상태 저장
-            graphCtx.translate(20, 250); // 라벨 위치 조정
-            graphCtx.rotate(-Math.PI / 2); // 90도 회전
-            graphCtx.fillText('평형 초당 물방울 수', 0, 0); // y축 라벨 세로로 표시
-            graphCtx.restore(); // 이전 상태 복원
+            // y축 라벨 (Xn 백분율)
+            graphCtx.save();
+            graphCtx.translate(20, 250);
+            graphCtx.rotate(-Math.PI / 2);
+            graphCtx.fillText('Xn (초당 떨어지는 물방울)', 0, 0); // 백분율을 표시
+            graphCtx.restore();
 
+            // Xn 값을 기반으로 그래프 그리기
             graphCtx.beginPath();
-            graphCtx.moveTo(50, 300 - graphData[0] * 250); // 그래프 크기에 맞게 조정
+            graphCtx.moveTo(50, 300 - graphData[0].Xn * 250); // 초기값 설정 (백분율 적용)
             for (let i = 1; i < graphData.length; i++) {
                 const x = 50 + (i / graphData.length) * 300;
-                const y = 300 - graphData[i] * 250;
+                const y = 300 - graphData[i].Xn * 250; // y축 값으로 Xn * 250 (0~1 범위를 그래프에 맞게 조정)
                 graphCtx.lineTo(x, y);
             }
             graphCtx.strokeStyle = '#0077be';
